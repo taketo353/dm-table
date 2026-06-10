@@ -108,7 +108,7 @@ function parseDeckText(text: string): ParsedDeck {
 
     if (match) {
       count = Number(match[1]);
-      name = match[2].trim();
+      name = match[2]?.trim() ?? "";
     }
 
     if (!Number.isInteger(count) || count <= 0 || count > 40) {

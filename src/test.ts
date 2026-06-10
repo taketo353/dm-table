@@ -9,6 +9,7 @@ function emptyZones(): Record<Zone, string[]> {
     mana: [],
     battle: [],
     grave: [],
+    private: [],
     external: [],
   };
 }

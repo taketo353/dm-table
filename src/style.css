@@ -338,3 +338,827 @@ button:hover {
   font-size: 11px;
   color: #777;
 }
+
+/* ===== Compact table UI ===== */
+
+.app {
+  padding: 10px;
+  padding-right: 340px;
+}
+
+h1 {
+  display: none;
+}
+
+.toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  max-height: 76px;
+  overflow-y: auto;
+  padding: 8px;
+  margin: -10px -10px 8px;
+  background: rgba(244, 244, 244, 0.96);
+  border-bottom: 1px solid #ddd;
+}
+
+.toolbar button,
+.deckPreviewControl {
+  padding: 5px 8px;
+  font-size: 12px;
+}
+
+.deckPreviewControl input {
+  width: 46px;
+}
+
+.hint,
+.selectedText {
+  margin: 4px 0;
+  font-size: 12px;
+}
+
+.tableLayout {
+  gap: 8px;
+}
+
+.playerBoard {
+  padding: 8px;
+  border-radius: 10px;
+}
+
+.playerTitle {
+  margin: 0 0 6px;
+  font-size: 14px;
+}
+
+.activeLabel {
+  font-size: 10px;
+  padding: 1px 6px;
+}
+
+.playerBoard .board {
+  display: grid;
+  grid-template-columns: 110px 150px minmax(260px, 1fr) 150px 150px;
+  grid-template-areas:
+    "deck shield battle mana hand"
+    "external grave battle private hand";
+  gap: 6px;
+}
+
+.zone-deck {
+  grid-area: deck;
+}
+
+.zone-shield {
+  grid-area: shield;
+}
+
+.zone-battle {
+  grid-area: battle;
+}
+
+.zone-mana {
+  grid-area: mana;
+}
+
+.zone-hand {
+  grid-area: hand;
+}
+
+.zone-grave {
+  grid-area: grave;
+}
+
+.zone-private {
+  grid-area: private;
+}
+
+.zone-external {
+  grid-area: external;
+}
+
+.playerBoard .zone {
+  min-height: 78px;
+  padding: 6px;
+  border-width: 1px;
+  border-radius: 8px;
+}
+
+.playerBoard .zone-battle {
+  min-height: 170px;
+}
+
+.playerBoard .zone-hand {
+  min-height: 170px;
+}
+
+.playerBoard .zone h3 {
+  margin: 0 0 5px;
+  font-size: 12px;
+}
+
+.cards {
+  gap: 4px;
+}
+
+.card {
+  width: 92px;
+  min-height: 46px;
+  padding: 5px;
+  border-width: 1px;
+  border-radius: 6px;
+  font-size: 11px;
+  gap: 2px;
+}
+
+.card strong {
+  font-size: 11px;
+  line-height: 1.15;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.hiddenInfo,
+.stackCount,
+.tapLabel {
+  font-size: 10px;
+}
+
+.selected {
+  outline: 3px solid #111;
+}
+
+.tapped {
+  transform: rotate(6deg);
+}
+
+.fullLogs {
+  position: fixed;
+  right: 10px;
+  top: 86px;
+  bottom: 10px;
+  width: 310px;
+  height: auto;
+  margin-top: 0;
+  z-index: 5;
+}
+
+.fullLogs h2 {
+  margin-top: 0;
+  font-size: 14px;
+}
+
+.log {
+  font-size: 11px;
+  padding: 4px 0;
+}
+
+@media (max-width: 1100px) {
+  .app {
+    padding: 10px;
+  }
+
+  .fullLogs {
+    position: static;
+    width: auto;
+    height: 180px;
+    margin-top: 10px;
+  }
+
+  .playerBoard .board {
+    grid-template-columns: repeat(4, minmax(130px, 1fr));
+    grid-template-areas: none;
+  }
+
+  .zone-deck,
+  .zone-shield,
+  .zone-battle,
+  .zone-mana,
+  .zone-hand,
+  .zone-grave,
+  .zone-private,
+  .zone-external {
+    grid-area: auto;
+  }
+}
+
+/* ===== Mana zone compact horizontal layout ===== */
+
+.playerBoard .board {
+  grid-template-columns: 100px 130px minmax(300px, 1fr) 160px 170px;
+  grid-template-areas:
+    "deck shield battle battle hand"
+    "external grave battle battle hand"
+    "mana mana mana private hand";
+}
+
+.zone-mana {
+  grid-area: mana;
+}
+
+.playerBoard .zone-mana {
+  min-height: 58px;
+}
+
+.zone-mana .cards {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  gap: 3px;
+  padding-bottom: 4px;
+}
+
+.zone-mana .card {
+  flex: 0 0 58px;
+  width: 58px;
+  min-height: 38px;
+  padding: 4px;
+  font-size: 10px;
+}
+
+.zone-mana .card strong {
+  font-size: 10px;
+  line-height: 1.1;
+  -webkit-line-clamp: 2;
+}
+
+.zone-mana .hiddenInfo,
+.zone-mana .stackCount,
+.zone-mana .tapLabel {
+  font-size: 9px;
+}
+
+/* 手札も枚数が増えがちなので少しだけ横スクロール寄り */
+.zone-hand .cards {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 4px;
+}
+
+.zone-hand .card {
+  flex: 0 0 82px;
+}
+
+/* バトルゾーンは横に広く使う */
+.zone-battle .cards {
+  align-content: flex-start;
+}
+
+@media (max-width: 1100px) {
+  .playerBoard .board {
+    grid-template-columns: repeat(4, minmax(130px, 1fr));
+    grid-template-areas: none;
+  }
+
+  .zone-mana .cards,
+  .zone-hand .cards {
+    flex-wrap: wrap;
+    overflow-x: visible;
+  }
+}
+
+/* ===== Horizontal hand & mana layout ===== */
+
+.playerBoard .board {
+  grid-template-columns: 100px 130px minmax(300px, 1fr) 130px 130px;
+  grid-template-areas:
+    "deck shield battle battle grave"
+    "external private battle battle grave"
+    "mana mana mana mana mana"
+    "hand hand hand hand hand";
+  gap: 6px;
+}
+
+.zone-deck {
+  grid-area: deck;
+}
+
+.zone-shield {
+  grid-area: shield;
+}
+
+.zone-battle {
+  grid-area: battle;
+}
+
+.zone-grave {
+  grid-area: grave;
+}
+
+.zone-external {
+  grid-area: external;
+}
+
+.zone-private {
+  grid-area: private;
+}
+
+.zone-mana {
+  grid-area: mana;
+}
+
+.zone-hand {
+  grid-area: hand;
+}
+
+.playerBoard .zone-hand,
+.playerBoard .zone-mana {
+  min-height: 62px;
+}
+
+.zone-hand .cards,
+.zone-mana .cards {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  gap: 4px;
+  padding-bottom: 4px;
+}
+
+.zone-hand .card {
+  flex: 0 0 84px;
+  width: 84px;
+  min-height: 42px;
+  padding: 4px;
+  font-size: 10px;
+}
+
+.zone-mana .card {
+  flex: 0 0 64px;
+  width: 64px;
+  min-height: 38px;
+  padding: 4px;
+  font-size: 10px;
+}
+
+.zone-hand .card strong,
+.zone-mana .card strong {
+  font-size: 10px;
+  line-height: 1.1;
+  -webkit-line-clamp: 2;
+}
+
+.zone-hand .hiddenInfo,
+.zone-hand .stackCount,
+.zone-hand .tapLabel,
+.zone-mana .hiddenInfo,
+.zone-mana .stackCount,
+.zone-mana .tapLabel {
+  font-size: 9px;
+}
+
+/* 横並びゾーンでタップ回転すると崩れるので、マナだけ回転を弱める */
+.zone-mana .tapped {
+  transform: none;
+  opacity: 0.55;
+  outline: 2px dashed #777;
+}
+
+.zone-hand .tapped {
+  transform: none;
+  opacity: 0.65;
+  outline: 2px dashed #777;
+}
+
+/* バトルゾーンは広めに残す */
+.playerBoard .zone-battle {
+  min-height: 150px;
+}
+
+.zone-battle .cards {
+  align-content: flex-start;
+}
+
+/* スマホ・狭い画面では普通に折り返し */
+@media (max-width: 1100px) {
+  .playerBoard .board {
+    grid-template-columns: repeat(2, minmax(150px, 1fr));
+    grid-template-areas:
+      "deck shield"
+      "battle battle"
+      "mana mana"
+      "hand hand"
+      "grave private"
+      "external external";
+  }
+
+  .zone-hand .cards,
+  .zone-mana .cards {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+  }
+}
+
+/* ===== No-vertical-scroll compact Duel Masters layout ===== */
+
+html,
+body,
+#root {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  margin: 0;
+}
+
+.app {
+  height: 100vh !important;
+  box-sizing: border-box;
+  overflow: hidden !important;
+  padding: 6px 270px 6px 6px !important;
+}
+
+.toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  max-height: 48px !important;
+  overflow-y: auto;
+  padding: 5px !important;
+  margin: -6px -264px 5px -6px !important;
+  border-bottom: 1px solid #ddd;
+  background: rgba(244, 244, 244, 0.97);
+}
+
+.toolbar button,
+.deckPreviewControl {
+  padding: 4px 6px !important;
+  font-size: 11px !important;
+}
+
+.deckPreviewControl input {
+  width: 42px !important;
+}
+
+.hint {
+  display: none;
+}
+
+.selectedText {
+  margin: 2px 0 4px !important;
+  font-size: 11px !important;
+}
+
+.tableLayout {
+  height: calc(100vh - 74px) !important;
+  display: grid !important;
+  grid-template-rows: 1fr 1fr;
+  gap: 5px !important;
+  overflow: hidden !important;
+}
+
+.playerBoard {
+  min-height: 0;
+  overflow: hidden !important;
+  padding: 5px !important;
+  border-radius: 9px !important;
+}
+
+.playerTitle {
+  height: 18px;
+  margin: 0 0 4px !important;
+  font-size: 12px !important;
+}
+
+.activeLabel {
+  font-size: 9px !important;
+  padding: 1px 5px !important;
+}
+
+.playerBoard .board {
+  height: calc(100% - 22px);
+  display: grid !important;
+  grid-template-columns: 76px minmax(180px, 0.9fr) minmax(240px, 1.05fr) 84px;
+  grid-template-rows: 1fr 1fr 44px 46px;
+  grid-template-areas:
+    "deck shield battle grave"
+    "external private battle grave"
+    "mana mana mana mana"
+    "hand hand hand hand";
+  gap: 4px !important;
+  overflow: hidden !important;
+}
+
+.zone-deck {
+  grid-area: deck !important;
+}
+
+.zone-shield {
+  grid-area: shield !important;
+}
+
+.zone-battle {
+  grid-area: battle !important;
+}
+
+.zone-grave {
+  grid-area: grave !important;
+}
+
+.zone-external {
+  grid-area: external !important;
+}
+
+.zone-private {
+  grid-area: private !important;
+}
+
+.zone-mana {
+  grid-area: mana !important;
+}
+
+.zone-hand {
+  grid-area: hand !important;
+}
+
+.playerBoard .zone {
+  min-height: 0 !important;
+  overflow: hidden !important;
+  padding: 4px !important;
+  border-width: 1px !important;
+  border-radius: 6px !important;
+}
+
+.playerBoard .zone h3 {
+  margin: 0 0 3px !important;
+  font-size: 10px !important;
+  line-height: 1.1;
+}
+
+.cards {
+  gap: 3px !important;
+}
+
+/* 横に伸びるゾーン */
+.zone-hand .cards,
+.zone-mana .cards,
+.zone-shield .cards {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  padding-bottom: 2px;
+}
+
+/* 手札 */
+.zone-hand .card {
+  flex: 0 0 68px !important;
+  width: 68px !important;
+  min-height: 30px !important;
+  padding: 3px !important;
+  font-size: 9px !important;
+}
+
+/* マナ */
+.zone-mana .card {
+  flex: 0 0 52px !important;
+  width: 52px !important;
+  min-height: 28px !important;
+  padding: 3px !important;
+  font-size: 9px !important;
+}
+
+/* シールド */
+.zone-shield .card {
+  flex: 0 0 54px !important;
+  width: 54px !important;
+  min-height: 30px !important;
+  padding: 3px !important;
+  font-size: 9px !important;
+}
+
+/* 通常カードも小さめ */
+.card {
+  width: 70px !important;
+  min-height: 36px !important;
+  padding: 4px !important;
+  border-width: 1px !important;
+  border-radius: 5px !important;
+  font-size: 9px !important;
+  gap: 1px !important;
+}
+
+.card strong {
+  font-size: 9px !important;
+  line-height: 1.08 !important;
+  -webkit-line-clamp: 2 !important;
+}
+
+.hiddenInfo,
+.stackCount,
+.tapLabel {
+  font-size: 8px !important;
+}
+
+/* バトルゾーンは少し狭くしつつ、最低限だけ表示 */
+.zone-battle .cards {
+  align-content: flex-start !important;
+  overflow-y: auto !important;
+  max-height: calc(100% - 14px);
+}
+
+/* 墓地は畳む */
+.zone-grave .cards {
+  height: calc(100% - 14px);
+  display: grid !important;
+  place-items: stretch;
+}
+
+.gravePile {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  box-sizing: border-box;
+  cursor: pointer;
+}
+
+.gravePile strong {
+  font-size: 10px !important;
+}
+
+/* 横並びゾーンでタップ回転すると崩れるので無効化 */
+.zone-hand .tapped,
+.zone-mana .tapped,
+.zone-shield .tapped {
+  transform: none !important;
+  opacity: 0.6;
+  outline: 2px dashed #777;
+}
+
+.selected {
+  outline: 2px solid #111 !important;
+}
+
+/* ログは右に固定して縦スクロールを逃がす */
+.fullLogs {
+  position: fixed !important;
+  right: 6px !important;
+  top: 56px !important;
+  bottom: 6px !important;
+  width: 252px !important;
+  height: auto !important;
+  margin: 0 !important;
+  padding: 8px !important;
+  overflow-y: auto !important;
+  z-index: 5;
+}
+
+.fullLogs h2 {
+  margin: 0 0 6px !important;
+  font-size: 12px !important;
+}
+
+.log {
+  font-size: 10px !important;
+  padding: 3px 0 !important;
+}
+
+/* 墓地展開モーダル */
+.graveModal {
+  width: min(760px, 92vw) !important;
+  max-height: 82vh;
+  overflow-y: auto;
+}
+
+.graveList {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 6px;
+  margin: 10px 0;
+}
+
+.graveListItem {
+  display: grid;
+  grid-template-columns: 22px 1fr;
+  gap: 5px;
+  align-items: center;
+  text-align: left;
+  padding: 6px;
+  border: 1px solid #bbb;
+  border-radius: 7px;
+  background: white;
+}
+
+.graveListItem strong {
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+.graveListItem small {
+  grid-column: 2;
+  color: #777;
+}
+
+.graveSelected {
+  outline: 3px solid #111;
+}
+
+/* 画面が狭いときだけ少し許す */
+@media (max-width: 1100px) {
+  html,
+  body,
+  #root {
+    overflow: auto;
+  }
+
+  .app {
+    height: auto !important;
+    overflow: visible !important;
+    padding: 6px !important;
+  }
+
+  .toolbar {
+    margin: -6px -6px 5px -6px !important;
+  }
+
+  .tableLayout {
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  .fullLogs {
+    position: static !important;
+    width: auto !important;
+    height: 160px !important;
+    margin-top: 8px !important;
+  }
+
+  .playerBoard .board {
+    height: auto;
+    grid-template-columns: repeat(2, minmax(150px, 1fr));
+    grid-template-rows: auto;
+    grid-template-areas:
+      "deck shield"
+      "battle battle"
+      "mana mana"
+      "hand hand"
+      "grave private"
+      "external external";
+  }
+}
+
+.deckEditorModal {
+  width: min(980px, 94vw) !important;
+  max-height: 88vh;
+  overflow: auto;
+}
+
+.deckEditorGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.deckEditorColumn h3 {
+  margin: 6px 0;
+  font-size: 14px;
+}
+
+.deckEditorColumn textarea {
+  width: 100%;
+  height: 46vh;
+  box-sizing: border-box;
+  padding: 8px;
+  border: 1px solid #aaa;
+  border-radius: 8px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.35;
+  resize: vertical;
+}
+
+.deckMessage {
+  max-height: 120px;
+  overflow: auto;
+  padding: 8px;
+  border-radius: 8px;
+  background: #fff3f3;
+  color: #8a0000;
+  white-space: pre-wrap;
+  font-size: 12px;
+}
+
+.deckEditorActions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+
+@media (max-width: 800px) {
+  .deckEditorGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .deckEditorColumn textarea {
+    height: 28vh;
+  }
+}

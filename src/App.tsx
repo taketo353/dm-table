@@ -24,6 +24,61 @@ const zoneLabels: Record<Zone, string> = {
   external: "外部",
 };
 
+const DEFAULT_DECK_TEXT = `4 天災 デドダム
+4 フェアリー・Re:ライフ
+4 Disジルコン
+4 終末王秘伝オリジナルフィナーレ
+4 切札勝太&カツキング -熱血の物語-
+3 単騎連射 マグナム
+3 音卿の精霊龍 ラフルル・ラブ
+3 流星のガイアッシュ・カイザー
+4 地龍神の魔陣
+4 ドンドン火噴くナウ
+3 ボン・キゴマイム`;
+
+type ParsedDeck = {
+  names: string[];
+  errors: string[];
+};
+
+function parseDeckText(text: string): ParsedDeck {
+  const names: string[] = [];
+  const errors: string[] = [];
+
+  text.split(/\r?\n/).forEach((rawLine, index) => {
+    const lineNumber = index + 1;
+    const line = rawLine.replace(/\/\/.*$/, "").trim();
+
+    if (!line || line.startsWith("#")) return;
+
+    const match = line.match(/^(\d+)\s+(.+)$/);
+
+    let count = 1;
+    let name = line;
+
+    if (match) {
+      count = Number(match[1]);
+      name = match[2].trim();
+    }
+
+    if (!Number.isInteger(count) || count <= 0 || count > 40) {
+      errors.push(`${lineNumber}行目: 枚数が不正です`);
+      return;
+    }
+
+    if (!name) {
+      errors.push(`${lineNumber}行目: カード名が空です`);
+      return;
+    }
+
+    for (let i = 0; i < count; i++) {
+      names.push(name);
+    }
+  });
+
+  return { names, errors };
+}
+
 function otherPlayer(playerId: PlayerId): PlayerId {
   return playerId === "p1" ? "p2" : "p1";
 }
@@ -102,33 +157,14 @@ function setupOpeningState(state: GameState, playerId: PlayerId): GameState {
   return next;
 }
 
-function makeSampleDeck(prefix = ""): string[] {
-  const base = [
-    "天災 デドダム",
-    "フェアリー・Re:ライフ",
-    "Disジルコン",
-    "終末王秘伝オリジナルフィナーレ",
-    "切札勝太&カツキング -熱血の物語-",
-    "単騎連射 マグナム",
-    "音卿の精霊龍 ラフルル・ラブ",
-    "流星のガイアッシュ・カイザー",
-    "地龍神の魔陣",
-    "ドンドン火噴くナウ",
-    "ボン・キゴマイム",
-    "とこしえの超人",
-  ];
+function makeGameStateFromDeckTexts(p1DeckText: string, p2DeckText: string): GameState {
+  const p1Deck = parseDeckText(p1DeckText);
+  const p2Deck = parseDeckText(p2DeckText);
 
-  return Array.from({ length: 40 }, (_, index) => {
-    const name = base[index % base.length];
-    return `${prefix}${name} #${index + 1}`;
-  });
-}
-
-function makeDemoState(): GameState {
   let state = createInitialState();
 
-  state = addDeck(state, "p1", makeSampleDeck(""));
-  state = addDeck(state, "p2", makeSampleDeck("相手-"));
+  state = addDeck(state, "p1", p1Deck.names);
+  state = addDeck(state, "p2", p2Deck.names);
 
   state = setupOpeningState(state, "p1");
   state = setupOpeningState(state, "p2");
@@ -171,15 +207,27 @@ function makeNewStackId(): StackId {
 }
 
 export default function App() {
-  const [state, setState] = useState<GameState>(() => makeDemoState());
+  const [p1DeckText, setP1DeckText] = useState(DEFAULT_DECK_TEXT);
+  const [p2DeckText, setP2DeckText] = useState(DEFAULT_DECK_TEXT);
+  const [showDeckEditor, setShowDeckEditor] = useState(false);
+  const [deckMessage, setDeckMessage] = useState<string | null>(null);
+
+  const [state, setState] = useState<GameState>(() =>
+    makeGameStateFromDeckTexts(DEFAULT_DECK_TEXT, DEFAULT_DECK_TEXT)
+  );
   const [viewPlayerId, setViewPlayerId] = useState<PlayerId>("p1");
   const [selectedStackIds, setSelectedStackIds] = useState<StackId[]>([]);
   const [revealedStackIds, setRevealedStackIds] = useState<StackId[]>([]);
   const [openedStackId, setOpenedStackId] = useState<StackId | null>(null);
+  const [openedZoneView, setOpenedZoneView] = useState<{ playerId: PlayerId; zone: Zone } | null>(
+    null
+  );
   const [deckPreviewInput, setDeckPreviewInput] = useState("4");
 
   const opponentId = otherPlayer(viewPlayerId);
   const selectedStackId = selectedStackIds[0] ?? null;
+  const p1ParsedDeck = parseDeckText(p1DeckText);
+  const p2ParsedDeck = parseDeckText(p2DeckText);
 
   function dispatch(action: Parameters<typeof applyAction>[1]) {
     setState((prev) => applyAction(prev, action));
@@ -189,15 +237,59 @@ export default function App() {
     setState((prev) => actions.reduce((current, action) => applyAction(current, action), prev));
   }
 
-  function handleResetGame() {
-    setState(makeDemoState());
+  function clearSelection() {
+    setSelectedStackIds([]);
+  }
+
+  function resetUiState() {
     setSelectedStackIds([]);
     setRevealedStackIds([]);
     setOpenedStackId(null);
+    setOpenedZoneView(null);
   }
 
-  function clearSelection() {
-    setSelectedStackIds([]);
+  function validateDecks(): string[] {
+    const errors = [
+      ...p1ParsedDeck.errors.map((error) => `p1: ${error}`),
+      ...p2ParsedDeck.errors.map((error) => `p2: ${error}`),
+    ];
+
+    if (p1ParsedDeck.names.length !== 40) {
+      errors.push(`p1: デッキ枚数が${p1ParsedDeck.names.length}枚です。40枚にしてください。`);
+    }
+
+    if (p2ParsedDeck.names.length !== 40) {
+      errors.push(`p2: デッキ枚数が${p2ParsedDeck.names.length}枚です。40枚にしてください。`);
+    }
+
+    return errors;
+  }
+
+  function handleApplyDecks() {
+    const errors = validateDecks();
+
+    if (errors.length > 0) {
+      setDeckMessage(errors.join("\n"));
+      return;
+    }
+
+    setState(makeGameStateFromDeckTexts(p1DeckText, p2DeckText));
+    resetUiState();
+    setDeckMessage("デッキを反映しました。");
+    setShowDeckEditor(false);
+  }
+
+  function handleResetGame() {
+    const errors = validateDecks();
+
+    if (errors.length > 0) {
+      setDeckMessage(errors.join("\n"));
+      setShowDeckEditor(true);
+      return;
+    }
+
+    setState(makeGameStateFromDeckTexts(p1DeckText, p2DeckText));
+    resetUiState();
   }
 
   function isSelected(stackId: StackId): boolean {
@@ -318,6 +410,7 @@ export default function App() {
   function handleClearPeek() {
     setRevealedStackIds([]);
     setOpenedStackId(null);
+    setOpenedZoneView(null);
     clearSelection();
   }
 
@@ -339,6 +432,7 @@ export default function App() {
 
     setSelectedStackIds([newStackId]);
     setOpenedStackId(null);
+    setOpenedZoneView(null);
   }
 
   function handleMoveSelectedToDeckTop() {
@@ -558,6 +652,18 @@ export default function App() {
                       <span>{stackIds.length}枚</span>
                       <span className="hiddenInfo">中身は非公開</span>
                     </div>
+                  ) : zone === "grave" ? (
+                    <div
+                      className="card cardBack gravePile"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        setOpenedZoneView({ playerId, zone: "grave" });
+                      }}
+                    >
+                      <strong>墓地</strong>
+                      <span>{stackIds.length}枚</span>
+                      <span className="hiddenInfo">クリックで展開</span>
+                    </div>
                   ) : (
                     stackIds.map((stackId, index) => renderStack(playerId, zone, stackId, index))
                   )}
@@ -581,9 +687,7 @@ export default function App() {
             value={viewPlayerId}
             onChange={(event) => {
               setViewPlayerId(event.target.value as PlayerId);
-              setRevealedStackIds([]);
-              clearSelection();
-              setOpenedStackId(null);
+              resetUiState();
             }}
           >
             <option value="p1">p1</option>
@@ -591,6 +695,7 @@ export default function App() {
           </select>
         </label>
 
+        <button onClick={() => setShowDeckEditor(true)}>デッキ作成</button>
         <button onClick={handleResetGame}>ゲーム開始/リセット</button>
         <button onClick={handleRevealSelected}>選択を見る</button>
         <button onClick={handleHideSelectedPeek}>選択を隠す</button>
@@ -647,7 +752,7 @@ export default function App() {
       </div>
 
       <p className="hint">
-        初期状態：両者 山札30 / 手札5 / シールド5。相手の手札/シールドをCtrlクリックで選択 → 「選択を見る」。
+        デッキ作成から40枚入力 → ゲーム開始/リセット。相手の手札/シールドは選択して「選択を見る」。
       </p>
 
       <p className="selectedText">選択中：{selectedText}</p>
@@ -665,6 +770,91 @@ export default function App() {
           </div>
         ))}
       </div>
+
+      {showDeckEditor && (
+        <div className="modalBackdrop" onClick={() => setShowDeckEditor(false)}>
+          <div className="modal deckEditorModal" onClick={(event) => event.stopPropagation()}>
+            <h2>デッキ作成</h2>
+            <p>形式：<code>4 天災 デドダム</code>。数字なしなら1枚扱い。各プレイヤー40枚。</p>
+
+            <div className="deckEditorGrid">
+              <div className="deckEditorColumn">
+                <h3>p1デッキ：{p1ParsedDeck.names.length}枚</h3>
+                <textarea
+                  value={p1DeckText}
+                  onChange={(event) => setP1DeckText(event.target.value)}
+                  spellCheck={false}
+                />
+              </div>
+
+              <div className="deckEditorColumn">
+                <h3>p2デッキ：{p2ParsedDeck.names.length}枚</h3>
+                <textarea
+                  value={p2DeckText}
+                  onChange={(event) => setP2DeckText(event.target.value)}
+                  spellCheck={false}
+                />
+              </div>
+            </div>
+
+            {deckMessage && <pre className="deckMessage">{deckMessage}</pre>}
+
+            <div className="deckEditorActions">
+              <button
+                onClick={() => {
+                  setP1DeckText(DEFAULT_DECK_TEXT);
+                  setP2DeckText(DEFAULT_DECK_TEXT);
+                  setDeckMessage(null);
+                }}
+              >
+                サンプルに戻す
+              </button>
+              <button onClick={handleApplyDecks}>このデッキで開始</button>
+              <button onClick={() => setShowDeckEditor(false)}>閉じる</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {openedZoneView && (
+        <div className="modalBackdrop" onClick={() => setOpenedZoneView(null)}>
+          <div className="modal graveModal" onClick={(event) => event.stopPropagation()}>
+            <h2>
+              {openedZoneView.playerId}：{zoneLabels[openedZoneView.zone]}
+            </h2>
+            <p>クリックで選択/解除。選択後、盤面のゾーンをクリックすると移動できます。</p>
+
+            <div className="graveList">
+              {state.players[openedZoneView.playerId].zones[openedZoneView.zone].length === 0 ? (
+                <p>空です。</p>
+              ) : (
+                state.players[openedZoneView.playerId].zones[openedZoneView.zone].map(
+                  (stackId, index) => {
+                    const stack = state.stacks[stackId];
+                    if (!stack) return null;
+
+                    return (
+                      <button
+                        key={stackId}
+                        className={`graveListItem ${isSelected(stackId) ? "graveSelected" : ""}`}
+                        onClick={() => toggleMultiSelection(stackId)}
+                      >
+                        <span>{index + 1}</span>
+                        <strong>{topCardName(state, stackId)}</strong>
+                        {stack.cardIds.length > 1 && (
+                          <small>下に{stack.cardIds.length - 1}枚</small>
+                        )}
+                      </button>
+                    );
+                  }
+                )
+              )}
+            </div>
+
+            <button onClick={() => setOpenedZoneView(null)}>閉じる</button>
+          </div>
+        </div>
+      )}
 
       {openedStackId && (
         <div className="modalBackdrop" onClick={() => setOpenedStackId(null)}>

@@ -1256,3 +1256,315 @@ body {
   max-height: 110px !important;
   overflow-y: auto !important;
 }
+
+/* ===== Extra compact vertical layout ===== */
+
+/* ツールバーを1段横スクロールにして、盤面の縦幅を確保 */
+.toolbar {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  gap: 5px !important;
+  max-height: 42px !important;
+  height: 42px !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  white-space: nowrap !important;
+  padding: 4px 6px !important;
+}
+
+.toolbar button,
+.toolbar select,
+.toolbar input {
+  flex: 0 0 auto !important;
+}
+
+.toolbar button {
+  padding: 4px 7px !important;
+  font-size: 11px !important;
+}
+
+.deckPreviewControl {
+  flex: 0 0 auto !important;
+  font-size: 11px !important;
+}
+
+.deckPreviewControl input {
+  height: 22px !important;
+  padding: 2px 5px !important;
+}
+
+/* 選択表示も薄く */
+.selectedText {
+  height: 16px !important;
+  line-height: 16px !important;
+  margin: 1px 0 2px !important;
+  font-size: 10px !important;
+}
+
+/* 全体の高さ計算を詰める */
+.app {
+  height: 100vh !important;
+  overflow: hidden !important;
+  padding-top: 4px !important;
+  padding-bottom: 3px !important;
+}
+
+/* 2人盤面を画面内に収める */
+.tableLayout {
+  height: calc(100vh - 66px) !important;
+  grid-template-rows: minmax(0, 1fr) minmax(0, 1fr) !important;
+  gap: 3px !important;
+  overflow: hidden !important;
+}
+
+.playerBoard {
+  min-height: 0 !important;
+  padding: 3px !important;
+  overflow: hidden !important;
+}
+
+.playerTitle {
+  height: 15px !important;
+  line-height: 15px !important;
+  margin: 0 0 2px !important;
+  font-size: 11px !important;
+}
+
+/* 盤面内部の縦配分を圧縮 */
+.playerBoard .board {
+  height: calc(100% - 17px) !important;
+  grid-template-columns: 76px minmax(180px, 0.9fr) minmax(240px, 1.05fr) 76px !important;
+  grid-template-rows: minmax(54px, 0.9fr) minmax(42px, 0.65fr) 32px 34px !important;
+  gap: 3px !important;
+}
+
+.playerBoard .zone {
+  padding: 3px !important;
+  min-height: 0 !important;
+}
+
+.playerBoard .zone h3 {
+  margin: 0 0 2px !important;
+  font-size: 9px !important;
+  line-height: 1.05 !important;
+}
+
+/* カードをさらに薄く */
+.card {
+  width: 58px !important;
+  min-height: 28px !important;
+  padding: 3px !important;
+  font-size: 8px !important;
+  gap: 0 !important;
+}
+
+.card strong {
+  font-size: 8px !important;
+  line-height: 1.05 !important;
+  -webkit-line-clamp: 2 !important;
+}
+
+.hiddenInfo,
+.stackCount,
+.tapLabel {
+  font-size: 7px !important;
+}
+
+/* 手札・マナ・シールドは薄い横帯 */
+.zone-hand .card {
+  flex: 0 0 58px !important;
+  width: 58px !important;
+  min-height: 25px !important;
+}
+
+.zone-mana .card {
+  flex: 0 0 48px !important;
+  width: 48px !important;
+  min-height: 24px !important;
+}
+
+.zone-shield .card {
+  flex: 0 0 50px !important;
+  width: 50px !important;
+  min-height: 26px !important;
+}
+
+.zone-hand .cards,
+.zone-mana .cards,
+.zone-shield .cards {
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  padding-bottom: 1px !important;
+}
+
+/* バトルゾーンも縦に膨らませすぎない */
+.zone-battle .cards {
+  max-height: calc(100% - 12px) !important;
+  overflow-y: auto !important;
+}
+
+/* ログ欄も上に合わせる */
+.fullLogs {
+  top: 50px !important;
+  bottom: 4px !important;
+  width: 250px !important;
+}
+
+/* 墓地の畳み表示も小さく */
+.gravePile {
+  min-height: 0 !important;
+}
+
+
+/* ===== Rebalance board rows: smaller deck/shield, bigger hand/mana ===== */
+
+/* 盤面全体は上寄せ。余白で下に押し出されないようにする */
+.playerBoard .board {
+  align-content: start !important;
+
+  grid-template-columns: 70px minmax(230px, 0.9fr) minmax(300px, 1fr) 70px !important;
+
+  /* 
+    1段目: 山札・シールド
+    2段目: 外部・確認中
+    3段目: マナ
+    4段目: 手札
+  */
+  grid-template-rows: 44px 42px 50px 64px !important;
+
+  grid-template-areas:
+    "deck shield battle grave"
+    "external private battle grave"
+    "mana mana mana mana"
+    "hand hand hand hand" !important;
+
+  gap: 3px !important;
+}
+
+/* 山札・墓地みたいな束表示は薄く */
+.zone-deck,
+.zone-grave {
+  min-height: 0 !important;
+}
+
+.zone-deck .card,
+.zone-grave .card,
+.gravePile {
+  min-height: 30px !important;
+  height: 100% !important;
+  width: 58px !important;
+  padding: 3px !important;
+}
+
+/* シールドは横帯。縦はいらない */
+.zone-shield {
+  min-height: 0 !important;
+}
+
+.zone-shield .cards {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  align-items: flex-start !important;
+}
+
+.zone-shield .card {
+  flex: 0 0 56px !important;
+  width: 56px !important;
+  min-height: 30px !important;
+  padding: 3px !important;
+}
+
+/* 外部・確認中も普段は薄く */
+.zone-external,
+.zone-private {
+  min-height: 0 !important;
+}
+
+.zone-external .cards,
+.zone-private .cards {
+  max-height: 28px !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+}
+
+/* マナは少し余裕を持たせる */
+.zone-mana {
+  min-height: 50px !important;
+}
+
+.zone-mana .cards {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  align-items: flex-start !important;
+}
+
+.zone-mana .card {
+  flex: 0 0 62px !important;
+  width: 62px !important;
+  min-height: 34px !important;
+  padding: 4px !important;
+}
+
+/* 手札は一番見たいので厚め */
+.zone-hand {
+  min-height: 64px !important;
+}
+
+.zone-hand .cards {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  align-items: flex-start !important;
+}
+
+.zone-hand .card {
+  flex: 0 0 78px !important;
+  width: 78px !important;
+  min-height: 42px !important;
+  padding: 4px !important;
+}
+
+/* 手札だけカード名を少し読めるようにする */
+.zone-hand .card strong {
+  font-size: 9px !important;
+  line-height: 1.1 !important;
+  -webkit-line-clamp: 2 !important;
+}
+
+/* マナは小さくても名前が最低限見える程度 */
+.zone-mana .card strong {
+  font-size: 8px !important;
+  line-height: 1.05 !important;
+  -webkit-line-clamp: 2 !important;
+}
+
+/* バトルゾーンは縦に膨らみすぎない */
+.zone-battle .cards {
+  max-height: calc(100% - 12px) !important;
+  overflow-y: auto !important;
+  align-content: flex-start !important;
+}
+
+/* プレイヤーボード自体も少しだけ締める */
+.playerBoard {
+  padding: 3px !important;
+}
+
+.playerTitle {
+  height: 14px !important;
+  line-height: 14px !important;
+  margin-bottom: 2px !important;
+}
+
+/* 下にはみ出しにくくする */
+.tableLayout {
+  height: calc(100vh - 62px) !important;
+  gap: 3px !important;
+}
+

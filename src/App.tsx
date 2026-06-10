@@ -36,10 +36,60 @@ const DEFAULT_DECK_TEXT = `4 天災 デドダム
 4 ドンドン火噴くナウ
 3 ボン・キゴマイム`;
 
+const SAVED_DECKS_KEY = "dm-table.savedDecks.v1";
+
+type SavedDeck = {
+  id: string;
+  name: string;
+  text: string;
+  createdAt: number;
+  updatedAt: number;
+};
+
 type ParsedDeck = {
   names: string[];
   errors: string[];
 };
+
+function createSavedDeckId(): string {
+  if (globalThis.crypto?.randomUUID) {
+    return globalThis.crypto.randomUUID();
+  }
+
+  return `deck-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
+function loadSavedDecks(): SavedDeck[] {
+  try {
+    if (typeof window === "undefined") return [];
+
+    const raw = window.localStorage.getItem(SAVED_DECKS_KEY);
+    if (!raw) return [];
+
+    const value = JSON.parse(raw);
+    if (!Array.isArray(value)) return [];
+
+    return value.filter((deck) => {
+      return (
+        typeof deck.id === "string" &&
+        typeof deck.name === "string" &&
+        typeof deck.text === "string" &&
+        typeof deck.createdAt === "number" &&
+        typeof deck.updatedAt === "number"
+      );
+    });
+  } catch {
+    return [];
+  }
+}
+
+function saveSavedDecks(decks: SavedDeck[]): void {
+  try {
+    window.localStorage.setItem(SAVED_DECKS_KEY, JSON.stringify(decks));
+  } catch {
+    // 保存容量不足など。画面側の状態は残す。
+  }
+}
 
 function parseDeckText(text: string): ParsedDeck {
   const names: string[] = [];
@@ -212,6 +262,10 @@ export default function App() {
   const [showDeckEditor, setShowDeckEditor] = useState(false);
   const [deckMessage, setDeckMessage] = useState<string | null>(null);
 
+  const [deckNameInput, setDeckNameInput] = useState("");
+  const [savedDecks, setSavedDecks] = useState<SavedDeck[]>(() => loadSavedDecks());
+  const [selectedSavedDeckId, setSelectedSavedDeckId] = useState("");
+
   const [state, setState] = useState<GameState>(() =>
     makeGameStateFromDeckTexts(DEFAULT_DECK_TEXT, DEFAULT_DECK_TEXT)
   );
@@ -228,6 +282,8 @@ export default function App() {
   const selectedStackId = selectedStackIds[0] ?? null;
   const p1ParsedDeck = parseDeckText(p1DeckText);
   const p2ParsedDeck = parseDeckText(p2DeckText);
+  const selectedSavedDeck =
+    savedDecks.find((deck) => deck.id === selectedSavedDeckId) ?? null;
 
   function dispatch(action: Parameters<typeof applyAction>[1]) {
     setState((prev) => applyAction(prev, action));
@@ -246,6 +302,100 @@ export default function App() {
     setRevealedStackIds([]);
     setOpenedStackId(null);
     setOpenedZoneView(null);
+  }
+
+  function persistSavedDecks(nextDecks: SavedDeck[]) {
+    setSavedDecks(nextDecks);
+    saveSavedDecks(nextDecks);
+  }
+
+  function validateDeckTextForSave(deckText: string): string[] {
+    const parsed = parseDeckText(deckText);
+    const errors = [...parsed.errors];
+
+    if (parsed.names.length !== 40) {
+      errors.push(`デッキ枚数が${parsed.names.length}枚です。40枚にしてください。`);
+    }
+
+    return errors;
+  }
+
+  function handleSaveDeck(deckText: string, sourceLabel: string) {
+    const name = deckNameInput.trim();
+
+    if (!name) {
+      setDeckMessage("デッキ名を入力してください。");
+      return;
+    }
+
+    const errors = validateDeckTextForSave(deckText);
+
+    if (errors.length > 0) {
+      setDeckMessage(errors.map((error) => `${sourceLabel}: ${error}`).join("\n"));
+      return;
+    }
+
+    const now = Date.now();
+    const existing = savedDecks.find((deck) => deck.name === name);
+
+    if (existing) {
+      const nextDecks = savedDecks.map((deck) =>
+        deck.id === existing.id
+          ? {
+              ...deck,
+              text: deckText,
+              updatedAt: now,
+            }
+          : deck
+      );
+
+      persistSavedDecks(nextDecks);
+      setSelectedSavedDeckId(existing.id);
+      setDeckMessage(`「${name}」を上書き保存しました。`);
+      return;
+    }
+
+    const newDeck: SavedDeck = {
+      id: createSavedDeckId(),
+      name,
+      text: deckText,
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    persistSavedDecks([...savedDecks, newDeck]);
+    setSelectedSavedDeckId(newDeck.id);
+    setDeckMessage(`「${name}」を保存しました。`);
+  }
+
+  function handleLoadSavedDeck(playerId: PlayerId) {
+    if (!selectedSavedDeck) {
+      setDeckMessage("読み込むデッキを選択してください。");
+      return;
+    }
+
+    if (playerId === "p1") {
+      setP1DeckText(selectedSavedDeck.text);
+    } else {
+      setP2DeckText(selectedSavedDeck.text);
+    }
+
+    setDeckNameInput(selectedSavedDeck.name);
+    setDeckMessage(`「${selectedSavedDeck.name}」を${playerId}へ読み込みました。`);
+  }
+
+  function handleDeleteSavedDeck() {
+    if (!selectedSavedDeck) {
+      setDeckMessage("削除するデッキを選択してください。");
+      return;
+    }
+
+    const deckName = selectedSavedDeck.name;
+    const nextDecks = savedDecks.filter((deck) => deck.id !== selectedSavedDeck.id);
+
+    persistSavedDecks(nextDecks);
+    setSelectedSavedDeckId("");
+    setDeckMessage(`「${deckName}」を削除しました。`);
   }
 
   function validateDecks(): string[] {
@@ -276,7 +426,6 @@ export default function App() {
     setState(makeGameStateFromDeckTexts(p1DeckText, p2DeckText));
     resetUiState();
     setDeckMessage("デッキを反映しました。");
-    setShowDeckEditor(false);
   }
 
   function handleResetGame() {
@@ -775,7 +924,63 @@ export default function App() {
         <div className="modalBackdrop" onClick={() => setShowDeckEditor(false)}>
           <div className="modal deckEditorModal" onClick={(event) => event.stopPropagation()}>
             <h2>デッキ作成</h2>
-            <p>形式：<code>4 天災 デドダム</code>。数字なしなら1枚扱い。各プレイヤー40枚。</p>
+            <p>
+              形式：<code>4 天災 デドダム</code>。数字なしなら1枚扱い。各プレイヤー40枚。
+            </p>
+
+            <div className="savedDeckPanel">
+              <div className="savedDeckNameRow">
+                <label>
+                  デッキ名
+                  <input
+                    value={deckNameInput}
+                    onChange={(event) => setDeckNameInput(event.target.value)}
+                    placeholder="例：黒緑デンジャデオン"
+                  />
+                </label>
+
+                <button onClick={() => handleSaveDeck(p1DeckText, "p1")}>
+                  現在のp1欄を保存
+                </button>
+
+                <button onClick={() => handleSaveDeck(p2DeckText, "p2")}>
+                  現在のp2欄を保存
+                </button>
+              </div>
+
+              <div className="savedDeckLoadRow">
+                <label>
+                  保存済みデッキ一覧
+                  <select
+                    value={selectedSavedDeckId}
+                    onChange={(event) => {
+                      const deckId = event.target.value;
+                      setSelectedSavedDeckId(deckId);
+
+                      const deck = savedDecks.find((savedDeck) => savedDeck.id === deckId);
+                      if (deck) {
+                        setDeckNameInput(deck.name);
+                      }
+                    }}
+                  >
+                    <option value="">選択してください</option>
+                    {savedDecks.map((deck) => {
+                      const parsed = parseDeckText(deck.text);
+
+                      return (
+                        <option key={deck.id} value={deck.id}>
+                          {deck.name}（{parsed.names.length}枚）
+                        </option>
+                      );
+                    })}
+                  </select>
+                </label>
+
+                <button onClick={() => handleLoadSavedDeck("p1")}>選択デッキをp1へ読み込み</button>
+                <button onClick={() => handleLoadSavedDeck("p2")}>選択デッキをp2へ読み込み</button>
+                <button onClick={handleDeleteSavedDeck}>選択デッキを削除</button>
+              </div>
+            </div>
 
             <div className="deckEditorGrid">
               <div className="deckEditorColumn">

@@ -1162,3 +1162,44 @@ body {
     height: 28vh;
   }
 }
+
+/* ===== Saved deck UI ===== */
+
+.savedDeckPanel {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  margin: 8px 0 12px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  background: #fafafa;
+}
+
+.savedDeckNameRow,
+.savedDeckLoadRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 8px;
+}
+
+.savedDeckPanel label {
+  display: grid;
+  gap: 3px;
+  font-size: 12px;
+}
+
+.savedDeckPanel input,
+.savedDeckPanel select {
+  min-width: 220px;
+  padding: 6px 8px;
+  border: 1px solid #aaa;
+  border-radius: 7px;
+  background: white;
+  font-size: 12px;
+}
+
+.savedDeckPanel button {
+  padding: 6px 9px;
+  font-size: 12px;
+}

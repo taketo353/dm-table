@@ -272,6 +272,7 @@ export default function App() {
   const [viewPlayerId, setViewPlayerId] = useState<PlayerId>("p1");
   const [selectedStackIds, setSelectedStackIds] = useState<StackId[]>([]);
   const [revealedStackIds, setRevealedStackIds] = useState<StackId[]>([]);
+  const [publicStackIds, setPublicStackIds] = useState<StackId[]>([]);
   const [openedStackId, setOpenedStackId] = useState<StackId | null>(null);
   const [openedZoneView, setOpenedZoneView] = useState<{ playerId: PlayerId; zone: Zone } | null>(
     null
@@ -425,6 +426,7 @@ export default function App() {
 
     setState(makeGameStateFromDeckTexts(p1DeckText, p2DeckText));
     resetUiState();
+    setPublicStackIds([]);
     setDeckMessage("デッキを反映しました。");
   }
 
@@ -439,6 +441,7 @@ export default function App() {
 
     setState(makeGameStateFromDeckTexts(p1DeckText, p2DeckText));
     resetUiState();
+    setPublicStackIds([]);
   }
 
   function isSelected(stackId: StackId): boolean {
@@ -447,6 +450,86 @@ export default function App() {
 
   function isRevealedByPeek(stackId: StackId): boolean {
     return revealedStackIds.includes(stackId);
+  }
+
+  function isPublicStack(stackId: StackId): boolean {
+    return publicStackIds.includes(stackId);
+  }
+
+  function addLogMessage(type: string, message: string) {
+    setState((prev) => ({
+      ...prev,
+      logs: [
+        {
+          id: `log-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+          actorId: viewPlayerId,
+          type,
+          message,
+          createdAt: Date.now(),
+        },
+        ...prev.logs,
+      ].slice(0, 120),
+    }));
+  }
+
+  function handlePublicizeSelected() {
+    const publishableIds = selectedStackIds.filter((stackId) => {
+      const stack = state.stacks[stackId];
+      const zone = findStackZone(state, stackId);
+
+      if (!stack || !zone) return false;
+      if (zone === "deck") return false;
+
+      return canRevealStack(stack.ownerId, zone, stackId);
+    });
+
+    if (publishableIds.length === 0) {
+      addLogMessage("PUBLICIZE_FAILED", `${viewPlayerId}: 公開可能なカードが選択されていません`);
+      return;
+    }
+
+    setPublicStackIds((prev) => Array.from(new Set([...prev, ...publishableIds])));
+
+    const names = publishableIds.map((stackId) => topCardName(state, stackId));
+    const shownNames = names.length <= 4 ? names.join("、") : `${names.length}枚`;
+
+    addLogMessage("PUBLICIZE", `${viewPlayerId}が公開：${shownNames}`);
+    clearSelection();
+  }
+
+  function handleUnpublicizeSelected() {
+    if (selectedStackIds.length === 0) return;
+
+    setPublicStackIds((prev) => prev.filter((stackId) => !selectedStackIds.includes(stackId)));
+    addLogMessage("UNPUBLICIZE", `${viewPlayerId}が選択カードの公開を解除`);
+    clearSelection();
+  }
+
+  function handleClearPublicInfo() {
+    setPublicStackIds([]);
+    addLogMessage("CLEAR_PUBLIC", `${viewPlayerId}が公開情報を全解除`);
+    clearSelection();
+  }
+
+  function handleDeclareSelected() {
+    const declarableIds = selectedStackIds.filter((stackId) => {
+      const stack = state.stacks[stackId];
+      const zone = findStackZone(state, stackId);
+
+      if (!stack || !zone) return false;
+      if (zone === "deck") return false;
+
+      return canRevealStack(stack.ownerId, zone, stackId);
+    });
+
+    if (declarableIds.length === 0) {
+      addLogMessage("DECLARE_FAILED", `${viewPlayerId}: 宣言できるカードが選択されていません`);
+      return;
+    }
+
+    const names = declarableIds.map((stackId) => topCardName(state, stackId));
+    addLogMessage("DECLARE_CARD_NAME", `${viewPlayerId}がカード名を宣言：${names.join("、")}`);
+    clearSelection();
   }
 
   function toggleMultiSelection(stackId: StackId) {
@@ -479,6 +562,11 @@ export default function App() {
     );
 
     setRevealedStackIds((prev) => prev.filter((id) => !movableStackIds.includes(id)));
+
+    if (zone === "deck") {
+      setPublicStackIds((prev) => prev.filter((id) => !movableStackIds.includes(id)));
+    }
+
     clearSelection();
   }
 
@@ -596,6 +684,7 @@ export default function App() {
     );
 
     setRevealedStackIds((prev) => prev.filter((id) => !selectedStackIds.includes(id)));
+    setPublicStackIds((prev) => prev.filter((id) => !selectedStackIds.includes(id)));
     clearSelection();
   }
 
@@ -611,6 +700,7 @@ export default function App() {
     );
 
     setRevealedStackIds((prev) => prev.filter((id) => !selectedStackIds.includes(id)));
+    setPublicStackIds((prev) => prev.filter((id) => !selectedStackIds.includes(id)));
     clearSelection();
   }
 
@@ -649,6 +739,8 @@ export default function App() {
 
   function canRevealStack(playerId: PlayerId, zone: Zone, stackId: StackId): boolean {
     if (zone === "deck") return false;
+
+    if (isPublicStack(stackId)) return true;
 
     if (playerId === viewPlayerId) {
       return true;
@@ -703,6 +795,7 @@ export default function App() {
 
     const revealed = canRevealStack(playerId, zone, stackId);
     const peeked = playerId !== viewPlayerId && isRevealedByPeek(stackId);
+    const publicInfo = isPublicStack(stackId);
     const selected = isSelected(stackId);
 
     if (!revealed) {
@@ -722,7 +815,7 @@ export default function App() {
       );
     }
 
-    if (zone === "shield" && !peeked) {
+    if (zone === "shield" && !peeked && !publicInfo) {
       return (
         <div
           key={stackId}
@@ -748,7 +841,7 @@ export default function App() {
         key={stackId}
         className={`card ${zone === "private" ? "privateCard" : ""} ${
           peeked ? "peekedCard" : ""
-        } ${selected ? "selected" : ""} ${stack.tapped ? "tapped" : ""}`}
+        } ${publicInfo ? "publicCard" : ""} ${selected ? "selected" : ""} ${stack.tapped ? "tapped" : ""}`}
         onClick={(event) => {
           event.stopPropagation();
           handleStackClick(stackId, event);
@@ -761,6 +854,7 @@ export default function App() {
         <strong>{topCardName(state, stackId)}</strong>
 
         {peeked && <span className="hiddenInfo">覗き中</span>}
+        {publicInfo && <span className="hiddenInfo">公開中</span>}
         {zone === "private" && <span className="hiddenInfo">確認中</span>}
 
         {stack.cardIds.length > 1 && (
@@ -845,6 +939,10 @@ export default function App() {
         </label>
 
         <button onClick={() => setShowDeckEditor(true)}>デッキ作成</button>
+        <button onClick={handlePublicizeSelected}>選択を公開</button>
+        <button onClick={handleUnpublicizeSelected}>公開解除</button>
+        <button onClick={handleClearPublicInfo}>公開全解除</button>
+        <button onClick={handleDeclareSelected}>選択を宣言</button>
         <button onClick={handleResetGame}>ゲーム開始/リセット</button>
         <button onClick={handleRevealSelected}>選択を見る</button>
         <button onClick={handleHideSelectedPeek}>選択を隠す</button>

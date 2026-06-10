@@ -261,3 +261,80 @@ button:hover {
   font-size: 12px;
   color: #777;
 }
+
+.tableLayout {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.playerBoard {
+  padding: 12px;
+  border: 2px solid #ddd;
+  border-radius: 16px;
+  background: #ffffff;
+}
+
+.activeBoard {
+  border-color: #333;
+}
+
+.playerTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 10px;
+  font-size: 18px;
+}
+
+.activeLabel {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #222;
+  color: white;
+  font-size: 12px;
+}
+
+.playerBoard .board {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+.playerBoard .zone {
+  min-height: 120px;
+}
+
+.playerBoard .zone h3 {
+  margin: 0 0 8px;
+  font-size: 14px;
+}
+
+.fullLogs {
+  margin-top: 16px;
+  height: 220px;
+}
+
+.deckPreviewControl select {
+  padding: 4px 6px;
+  border: 1px solid #aaa;
+  border-radius: 6px;
+  background: white;
+}
+
+@media (max-width: 900px) {
+  .playerBoard .board {
+    grid-template-columns: repeat(2, minmax(160px, 1fr));
+  }
+}
+
+.peekedCard {
+  background: #fff7df;
+  border-style: solid;
+}
+
+.peekedCard::after {
+  content: "PEEK";
+  font-size: 11px;
+  color: #777;
+}

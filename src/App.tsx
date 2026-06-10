@@ -1,4 +1,5 @@
-import { useState, type MouseEvent } from "react";
+import { useEffect, useRef, useState, type MouseEvent } from "react";
+import { io, type Socket } from "socket.io-client";
 import type { GameState, PlayerId, StackId, Zone } from "./types";
 import { applyAction } from "./reducer";
 
@@ -256,6 +257,15 @@ function makeNewStackId(): StackId {
   return `extracted-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
+
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL ?? "http://localhost:3001";
+
+type RoomJoinedPayload = {
+  roomId: string;
+  playerId: PlayerId | "spectator";
+  state: GameState | null;
+};
+
 export default function App() {
   const [p1DeckText, setP1DeckText] = useState(DEFAULT_DECK_TEXT);
   const [p2DeckText, setP2DeckText] = useState(DEFAULT_DECK_TEXT);
@@ -278,6 +288,74 @@ export default function App() {
     null
   );
   const [deckPreviewInput, setDeckPreviewInput] = useState("4");
+
+  const [roomId] = useState("default");
+  const [syncEnabled] = useState(true);
+  const [socketConnected, setSocketConnected] = useState(false);
+  const socketRef = useRef<Socket | null>(null);
+  const stateRef = useRef<GameState>(state);
+  const applyingRemoteStateRef = useRef(false);
+  const lastSentStateRef = useRef("");
+
+  useEffect(() => {
+    stateRef.current = state;
+  }, [state]);
+
+  useEffect(() => {
+    const socket = io(SOCKET_URL, {
+      transports: ["websocket", "polling"],
+    });
+
+    socketRef.current = socket;
+
+    socket.on("connect", () => {
+      setSocketConnected(true);
+      socket.emit("room:join", { roomId, playerId: viewPlayerId });
+    });
+
+    socket.on("disconnect", () => {
+      setSocketConnected(false);
+    });
+
+    socket.on("room:joined", (payload: RoomJoinedPayload) => {
+      if (payload.state) {
+        applyingRemoteStateRef.current = true;
+        setState(payload.state);
+      } else if (syncEnabled) {
+        socket.emit("game:state", stateRef.current);
+      }
+    });
+
+    socket.on("game:state", (nextState: GameState) => {
+      applyingRemoteStateRef.current = true;
+      setState(nextState);
+    });
+
+    return () => {
+      socket.disconnect();
+      socketRef.current = null;
+    };
+  }, [roomId, viewPlayerId, syncEnabled]);
+
+  useEffect(() => {
+    if (!syncEnabled) return;
+
+    const socket = socketRef.current;
+    if (!socket?.connected) return;
+
+    const serialized = JSON.stringify(state);
+
+    if (applyingRemoteStateRef.current) {
+      applyingRemoteStateRef.current = false;
+      lastSentStateRef.current = serialized;
+      return;
+    }
+
+    if (serialized === lastSentStateRef.current) return;
+
+    lastSentStateRef.current = serialized;
+    socket.emit("game:state", state);
+  }, [state, syncEnabled]);
 
   const opponentId = otherPlayer(viewPlayerId);
   const selectedStackId = selectedStackIds[0] ?? null;

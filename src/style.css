@@ -1,0 +1,263 @@
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  background: #f4f4f4;
+  color: #222;
+}
+
+.app {
+  padding: 16px;
+}
+
+h1 {
+  margin: 0 0 12px;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+button {
+  padding: 8px 12px;
+  border: 1px solid #aaa;
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #eee;
+}
+
+.hint,
+.selectedText {
+  margin: 6px 0;
+  font-size: 14px;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 16px;
+}
+
+.board {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.zone {
+  min-height: 140px;
+  padding: 10px;
+  border: 2px solid #ccc;
+  border-radius: 12px;
+  background: white;
+}
+
+.zone h2 {
+  margin: 0 0 8px;
+  font-size: 16px;
+}
+
+.cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.card {
+  width: 140px;
+  min-height: 64px;
+  padding: 8px;
+  border: 2px solid #333;
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.card:hover {
+  background: #eee;
+}
+
+.selected {
+  outline: 4px solid #111;
+}
+
+.tapped {
+  transform: rotate(8deg);
+  opacity: 0.75;
+}
+
+.stackCount,
+.tapLabel {
+  font-size: 12px;
+  color: #555;
+}
+
+.logs {
+  height: calc(100vh - 120px);
+  padding: 12px;
+  border-radius: 12px;
+  background: white;
+  overflow-y: auto;
+}
+
+.log {
+  padding: 6px 0;
+  border-bottom: 1px solid #ddd;
+  font-size: 13px;
+}
+
+.modalBackdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: grid;
+  place-items: center;
+}
+
+.modal {
+  width: min(420px, 90vw);
+  padding: 20px;
+  border-radius: 16px;
+  background: white;
+}
+
+.cardBack {
+  border-style: dashed;
+  background: #fafafa;
+  color: #444;
+  cursor: default;
+}
+
+.hiddenInfo {
+  font-size: 12px;
+  color: #777;
+}
+
+.shieldBack {
+  min-height: 72px;
+}
+
+.cardBack {
+  border-style: dashed;
+  background: #fafafa;
+  color: #444;
+}
+
+.hiddenInfo {
+  font-size: 12px;
+  color: #777;
+}
+
+.deckPreviewControl {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: white;
+}
+
+.deckPreviewControl input {
+  width: 56px;
+  padding: 4px 6px;
+  border: 1px solid #aaa;
+  border-radius: 6px;
+}
+
+.deckPreviewControl {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: white;
+}
+
+.deckPreviewControl input {
+  width: 56px;
+  padding: 4px 6px;
+  border: 1px solid #aaa;
+  border-radius: 6px;
+}
+
+.deckPreviewControl {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: white;
+}
+
+.deckPreviewControl input {
+  width: 56px;
+  padding: 4px 6px;
+  border: 1px solid #aaa;
+  border-radius: 6px;
+}
+
+.deckPreviewControl {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: white;
+}
+
+.deckPreviewControl input {
+  width: 56px;
+  padding: 4px 6px;
+  border: 1px solid #aaa;
+  border-radius: 6px;
+}
+
+.deckPreviewControl {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: white;
+}
+
+.deckPreviewControl input {
+  width: 56px;
+  padding: 4px 6px;
+  border: 1px solid #aaa;
+  border-radius: 6px;
+}
+
+.privateCard {
+  background: #fffdf2;
+}
+
+.shieldBack {
+  min-height: 72px;
+}
+
+.cardBack {
+  border-style: dashed;
+  background: #fafafa;
+  color: #444;
+}
+
+.hiddenInfo {
+  font-size: 12px;
+  color: #777;
+}

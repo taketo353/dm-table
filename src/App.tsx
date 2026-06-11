@@ -266,6 +266,25 @@ type RoomJoinedPayload = {
   state: GameState | null;
 };
 
+function createRoomId(): string {
+  return Math.random().toString(36).slice(2, 8);
+}
+
+function getInitialRoomId(): string {
+  const url = new URL(window.location.href);
+  const room = url.searchParams.get("room")?.trim();
+
+  if (room) {
+    return room.slice(0, 64);
+  }
+
+  const generatedRoomId = createRoomId();
+  url.searchParams.set("room", generatedRoomId);
+  window.history.replaceState(null, "", url.toString());
+
+  return generatedRoomId;
+}
+
 export default function App() {
   const [p1DeckText, setP1DeckText] = useState(DEFAULT_DECK_TEXT);
   const [p2DeckText, setP2DeckText] = useState(DEFAULT_DECK_TEXT);
@@ -289,7 +308,7 @@ export default function App() {
   );
   const [deckPreviewInput, setDeckPreviewInput] = useState("4");
 
-  const [roomId] = useState("default");
+  const [roomId] = useState(() => getInitialRoomId());
   const [syncEnabled] = useState(true);
   const [socketConnected, setSocketConnected] = useState(false);
   const socketRef = useRef<Socket | null>(null);

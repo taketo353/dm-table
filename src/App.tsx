@@ -260,6 +260,8 @@ function makeNewStackId(): StackId {
 
 const SOCKET_URL = import.meta.env.VITE_SOCKET_URL ?? "http://localhost:3001";
 
+type ClientRole = PlayerId | "spectator";
+
 type RoomJoinedPayload = {
   roomId: string;
   playerId: PlayerId | "spectator";
@@ -309,6 +311,11 @@ export default function App() {
   const [deckPreviewInput, setDeckPreviewInput] = useState("4");
 
   const [roomId] = useState(() => getInitialRoomId());
+  const [clientRole, setClientRole] = useState<ClientRole>(() => {
+    const role = new URL(window.location.href).searchParams.get("role");
+
+    return role === "p1" || role === "p2" || role === "spectator" ? role : "p1";
+  });
   const [syncEnabled] = useState(true);
   const [socketConnected, setSocketConnected] = useState(false);
   const socketRef = useRef<Socket | null>(null);
@@ -329,7 +336,7 @@ export default function App() {
 
     socket.on("connect", () => {
       setSocketConnected(true);
-      socket.emit("room:join", { roomId, playerId: viewPlayerId });
+      socket.emit("room:join", { roomId, playerId: clientRole });
     });
 
     socket.on("disconnect", () => {
@@ -354,7 +361,7 @@ export default function App() {
       socket.disconnect();
       socketRef.current = null;
     };
-  }, [roomId, viewPlayerId, syncEnabled]);
+  }, [roomId, clientRole, syncEnabled]);
 
   useEffect(() => {
     if (!syncEnabled) return;
@@ -376,6 +383,39 @@ export default function App() {
     socket.emit("game:state", state);
   }, [state, syncEnabled]);
 
+  function handleClientRoleChange(nextRole: ClientRole) {
+    const url = new URL(window.location.href);
+    url.searchParams.set("room", roomId);
+    url.searchParams.set("role", nextRole);
+    window.history.replaceState(null, "", url.toString());
+
+    setClientRole(nextRole);
+
+    if (nextRole === "p1" || nextRole === "p2") {
+      setViewPlayerId(nextRole);
+      resetUiState();
+    }
+  }
+
+  function buildRoomShareUrl(): string {
+    const url = new URL(window.location.href);
+    url.searchParams.set("room", roomId);
+    url.searchParams.delete("role");
+
+    return url.toString();
+  }
+
+  async function handleCopyRoomUrl() {
+    const shareUrl = buildRoomShareUrl();
+
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setDeckMessage("部屋URLをコピーしました。");
+    } catch {
+      window.prompt("このURLをコピーしてください", shareUrl);
+    }
+  }
+
   const opponentId = otherPlayer(viewPlayerId);
   const selectedStackId = selectedStackIds[0] ?? null;
   const p1ParsedDeck = parseDeckText(p1DeckText);
@@ -384,10 +424,12 @@ export default function App() {
     savedDecks.find((deck) => deck.id === selectedSavedDeckId) ?? null;
 
   function dispatch(action: Parameters<typeof applyAction>[1]) {
+    if (clientRole === "spectator") return;
     setState((prev) => applyAction(prev, action));
   }
 
   function dispatchMany(actions: Parameters<typeof applyAction>[1][]) {
+    if (clientRole === "spectator") return;
     setState((prev) => actions.reduce((current, action) => applyAction(current, action), prev));
   }
 
@@ -1019,6 +1061,30 @@ export default function App() {
   return (
     <div className="app">
       <h1>DM Table Prototype</h1>
+
+      <div className="roomPanel">
+        <div>
+          <strong>部屋</strong>
+          <span className="roomId">{roomId}</span>
+          <span className={socketConnected ? "syncStatus connected" : "syncStatus"}>
+            {socketConnected ? "同期中" : "未接続"}
+          </span>
+        </div>
+
+        <label className="deckPreviewControl">
+          入室役割
+          <select
+            value={clientRole}
+            onChange={(event) => handleClientRoleChange(event.target.value as ClientRole)}
+          >
+            <option value="p1">p1</option>
+            <option value="p2">p2</option>
+            <option value="spectator">観戦</option>
+          </select>
+        </label>
+
+        <button onClick={handleCopyRoomUrl}>部屋URLコピー</button>
+      </div>
 
       <div className="toolbar">
         <label className="deckPreviewControl">

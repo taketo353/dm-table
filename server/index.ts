@@ -79,6 +79,7 @@ io.on("connection", (socket) => {
 
   socket.on("game:state", (state: unknown) => {
     if (!joinedRoomId) return;
+    if (joinedPlayerId === "spectator") return;
 
     const room = getRoom(joinedRoomId);
     room.state = state;

@@ -10,7 +10,8 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "server": "tsx server/index.ts",
-    "dev:all": "concurrently \"npm run web\" \"npm run server\""
+    "dev:all": "concurrently \"npm run web\" \"npm run server\"",
+    "start": "tsx server/index.ts"
   },
   "keywords": [],
   "author": "",

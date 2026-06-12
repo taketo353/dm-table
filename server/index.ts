@@ -1,10 +1,13 @@
 import { createServer } from "node:http";
 import { Server } from "socket.io";
+import { applyAction } from "../src/reducer";
+import type { GameState } from "../src/types";
 
 type PlayerId = "p1" | "p2" | "spectator";
+type GameAction = Parameters<typeof applyAction>[1];
 
 type Room = {
-  state: unknown | null;
+  state: GameState | null;
   players: Partial<Record<"p1" | "p2", string>>;
   updatedAt: number;
 };
@@ -26,6 +29,11 @@ function getRoom(roomId: string): Room {
   }
 
   return room;
+}
+
+function broadcastRoomState(roomId: string, room: Room) {
+  if (!room.state) return;
+  io.to(roomId).emit("game:state", room.state);
 }
 
 const httpServer = createServer((req, res) => {
@@ -77,7 +85,7 @@ io.on("connection", (socket) => {
     socket.to(roomId).emit("room:players", room.players);
   });
 
-  socket.on("game:state", (state: unknown) => {
+  socket.on("game:init", (state: GameState) => {
     if (!joinedRoomId) return;
     if (joinedPlayerId === "spectator") return;
 
@@ -85,7 +93,33 @@ io.on("connection", (socket) => {
     room.state = state;
     room.updatedAt = Date.now();
 
-    socket.to(joinedRoomId).emit("game:state", state);
+    broadcastRoomState(joinedRoomId, room);
+  });
+
+  socket.on("game:action", (action: GameAction) => {
+    if (!joinedRoomId) return;
+    if (joinedPlayerId === "spectator") return;
+
+    const room = getRoom(joinedRoomId);
+    if (!room.state) return;
+
+    room.state = applyAction(room.state, action);
+    room.updatedAt = Date.now();
+
+    broadcastRoomState(joinedRoomId, room);
+  });
+
+  socket.on("game:actions", (actions: GameAction[]) => {
+    if (!joinedRoomId) return;
+    if (joinedPlayerId === "spectator") return;
+
+    const room = getRoom(joinedRoomId);
+    if (!room.state) return;
+
+    room.state = actions.reduce((current, action) => applyAction(current, action), room.state);
+    room.updatedAt = Date.now();
+
+    broadcastRoomState(joinedRoomId, room);
   });
 
   socket.on("disconnect", () => {

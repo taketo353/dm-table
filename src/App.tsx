@@ -348,7 +348,7 @@ export default function App() {
         applyingRemoteStateRef.current = true;
         setState(payload.state);
       } else if (syncEnabled) {
-        socket.emit("game:state", stateRef.current);
+        socket.emit("game:init", stateRef.current);
       }
     });
 
@@ -380,7 +380,7 @@ export default function App() {
     if (serialized === lastSentStateRef.current) return;
 
     lastSentStateRef.current = serialized;
-    socket.emit("game:state", state);
+    socket.emit("game:init", state);
   }, [state, syncEnabled]);
 
   function handleClientRoleChange(nextRole: ClientRole) {
@@ -425,11 +425,25 @@ export default function App() {
 
   function dispatch(action: Parameters<typeof applyAction>[1]) {
     if (clientRole === "spectator") return;
+
+    const socket = socketRef.current;
+    if (syncEnabled && socket?.connected) {
+      socket.emit("game:action", action);
+      return;
+    }
+
     setState((prev) => applyAction(prev, action));
   }
 
   function dispatchMany(actions: Parameters<typeof applyAction>[1][]) {
     if (clientRole === "spectator") return;
+
+    const socket = socketRef.current;
+    if (syncEnabled && socket?.connected) {
+      socket.emit("game:actions", actions);
+      return;
+    }
+
     setState((prev) => actions.reduce((current, action) => applyAction(current, action), prev));
   }
 

@@ -1161,6 +1161,11 @@ export default function App() {
 
         <button onClick={handleCopyRoomUrl}>部屋URLコピー</button>
         <button onClick={handleLeaveRoom}>退室</button>
+
+        <div className="gameManageActions">
+          <button onClick={() => setShowDeckEditor(true)}>デッキ作成</button>
+          <button onClick={handleResetGame}>ゲーム開始/リセット</button>
+        </div>
       </div>
 
       <div className="toolbar">
@@ -1178,29 +1183,27 @@ export default function App() {
           </select>
         </label>
 
-        <button onClick={() => setShowDeckEditor(true)}>デッキ作成</button>
-        <button onClick={handlePublicizeSelected}>選択を公開</button>
+        <button className="toolbarGroupStart" onClick={handlePublicizeSelected}>公開</button>
         <button onClick={handleUnpublicizeSelected}>公開解除</button>
-        <button onClick={handleClearPublicInfo}>公開全解除</button>
-        <button onClick={handleDeclareSelected}>選択を宣言</button>
-        <button onClick={handleResetGame}>ゲーム開始/リセット</button>
-        <button onClick={handleRevealSelected}>選択を見る</button>
-        <button onClick={handleHideSelectedPeek}>選択を隠す</button>
-        <button onClick={handleClearPeek}>覗き全解除</button>
+        <button onClick={handleClearPublicInfo}>公開全消し</button>
+        <button onClick={handleDeclareSelected}>宣言</button>
+        <button className="toolbarGroupStart" onClick={handleRevealSelected}>見る</button>
+        <button onClick={handleHideSelectedPeek}>隠す</button>
+        <button onClick={handleClearPeek}>覗き消し</button>
 
-        <button onClick={() => dispatch({ type: "SHUFFLE_DECK", actorId: viewPlayerId })}>
-          山札シャッフル
+        <button className="toolbarGroupStart" onClick={() => dispatch({ type: "SHUFFLE_DECK", actorId: viewPlayerId })}>
+          シャッフル
         </button>
 
-        <button onClick={() => dispatch({ type: "SET_SHIELDS", actorId: viewPlayerId, count: 5 })}>
-          シールド5枚
+        <button onClick={() => dispatch({ type: "SET_SHIELDS", actorId: viewPlayerId, count: 1 })}>
+          シールド+1
         </button>
 
         <button onClick={() => dispatch({ type: "DRAW", actorId: viewPlayerId, count: 1 })}>
-          1ドロー
+          ドロー
         </button>
 
-        <label className="deckPreviewControl">
+        <label className="deckPreviewControl toolbarGroupStart">
           山札上
           <input
             value={deckPreviewInput}
@@ -1212,9 +1215,9 @@ export default function App() {
           枚
         </label>
 
-        <button onClick={handleMoveDeckTopToPrivate}>確認中へ</button>
-        <button onClick={handleMovePrivateToDeckTop}>確認中を山札上へ</button>
-        <button onClick={handleMovePrivateToDeckBottom}>確認中を山札下へ</button>
+        <button onClick={handleMoveDeckTopToPrivate}>確認へ</button>
+        <button onClick={handleMovePrivateToDeckTop}>確認→山上</button>
+        <button onClick={handleMovePrivateToDeckBottom}>確認→山下</button>
 
         <button
           onClick={() => {
@@ -1239,7 +1242,7 @@ export default function App() {
       </div>
 
       <p className="hint">
-        デッキ作成から40枚入力 → ゲーム開始/リセット。相手の手札/シールドは選択して「選択を見る」。
+        デッキ作成から40枚入力 → ゲーム開始/リセット。相手の手札/シールドは選択して「見る」。
       </p>
 
       <p className="selectedText">選択中：{selectedText}</p>

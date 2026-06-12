@@ -2007,3 +2007,48 @@ body {
   }
 }
 
+
+/* ゲーム管理ボタンを対戦中ツールバーから分離 */
+.gameManageActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 8px;
+  padding-left: 8px;
+  border-left: 1px solid #d8d8d8;
+}
+
+.gameManageActions button {
+  font-weight: 700;
+}
+
+@media (min-width: 900px) {
+  .gameManageActions {
+    flex: 0 0 auto;
+  }
+
+  .gameManageActions button {
+    min-height: 28px;
+    padding: 3px 8px;
+    font-size: 12px;
+    line-height: 1.2;
+    border-radius: 7px;
+  }
+}
+
+/* ツールバーのカテゴリ区切り */
+.toolbarGroupStart {
+  margin-left: 12px !important;
+  position: relative;
+}
+
+.toolbarGroupStart::before {
+  content: "";
+  position: absolute;
+  left: -7px;
+  top: 5px;
+  bottom: 5px;
+  width: 1px;
+  background: #d0d0d0;
+}
+

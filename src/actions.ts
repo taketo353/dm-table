@@ -67,4 +67,5 @@ export type GameAction =
       type: "TOGGLE_FACE";
       actorId: PlayerId;
       cardId: CardId;
-    };
+    }
+  | { type: "CONCEDE"; actorId: PlayerId };

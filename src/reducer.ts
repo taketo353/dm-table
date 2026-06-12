@@ -61,6 +61,11 @@ export function applyAction(input: GameState, action: GameAction): GameState {
   const state = cloneState(input);
 
   switch (action.type) {
+    case "CONCEDE": {
+      addLog(state, action.actorId, "CONCEDE", `${action.actorId}が投了しました`);
+      return state;
+    }
+
     case "MOVE_STACK": {
       const stack = state.stacks[action.stackId];
       if (!stack) return input;

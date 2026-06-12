@@ -301,6 +301,7 @@ export default function App() {
     null
   );
   const [deckPreviewInput, setDeckPreviewInput] = useState("4");
+  const [isLogOpen, setIsLogOpen] = useState(true);
 
   const [roomId, setRoomId] = useState(() => getInitialRoomId());
   const [clientRole, setClientRole] = useState<ClientRole>(() => {
@@ -1165,6 +1166,18 @@ export default function App() {
         <div className="gameManageActions">
           <button onClick={() => setShowDeckEditor(true)}>デッキ作成</button>
           <button onClick={handleResetGame}>ゲーム開始/リセット</button>
+          <button
+            className="dangerButton"
+            onClick={() => {
+              if (!window.confirm(`${viewPlayerId}で投了しますか？`)) return;
+              dispatch({ type: "CONCEDE", actorId: viewPlayerId });
+            }}
+          >
+            投了
+          </button>
+          <button onClick={() => setIsLogOpen((prev) => !prev)}>
+            {isLogOpen ? "ログ閉じる" : "ログ表示"}
+          </button>
         </div>
       </div>
 
@@ -1252,7 +1265,7 @@ export default function App() {
         {renderPlayerBoard(viewPlayerId, "自分盤面")}
       </div>
 
-      <div className="logs fullLogs">
+      <div className={isLogOpen ? "logs fullLogs" : "logs fullLogs logHidden"}>
         <h2>ログ</h2>
         {state.logs.map((log) => (
           <div key={log.id} className="log">

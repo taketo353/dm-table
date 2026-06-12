@@ -276,15 +276,7 @@ function getInitialRoomId(): string {
   const url = new URL(window.location.href);
   const room = url.searchParams.get("room")?.trim();
 
-  if (room) {
-    return room.slice(0, 64);
-  }
-
-  const generatedRoomId = createRoomId();
-  url.searchParams.set("room", generatedRoomId);
-  window.history.replaceState(null, "", url.toString());
-
-  return generatedRoomId;
+  return room ? room.slice(0, 64) : "";
 }
 
 export default function App() {
@@ -310,12 +302,19 @@ export default function App() {
   );
   const [deckPreviewInput, setDeckPreviewInput] = useState("4");
 
-  const [roomId] = useState(() => getInitialRoomId());
+  const [roomId, setRoomId] = useState(() => getInitialRoomId());
   const [clientRole, setClientRole] = useState<ClientRole>(() => {
-    const role = new URL(window.location.href).searchParams.get("role");
+    const url = new URL(window.location.href);
+    const role = url.searchParams.get("role");
+    const room = url.searchParams.get("room")?.trim();
 
-    return role === "p1" || role === "p2" || role === "spectator" ? role : "p1";
+    if (role === "p1" || role === "p2" || role === "spectator") {
+      return role;
+    }
+
+    return room ? "p2" : "p1";
   });
+  const [roomInput, setRoomInput] = useState(() => roomId || createRoomId());
   const [syncEnabled] = useState(true);
   const [socketConnected, setSocketConnected] = useState(false);
   const socketRef = useRef<Socket | null>(null);
@@ -382,6 +381,41 @@ export default function App() {
     lastSentStateRef.current = serialized;
     socket.emit("game:init", state);
   }, [state, syncEnabled]);
+
+  function normalizeRoomIdInput(value: string): string {
+    return value.trim().slice(0, 64) || createRoomId();
+  }
+
+  function handleEnterRoom(nextRole: ClientRole) {
+    const nextRoomId = normalizeRoomIdInput(roomInput);
+    const url = new URL(window.location.href);
+
+    url.searchParams.set("room", nextRoomId);
+    url.searchParams.set("role", nextRole);
+    window.history.replaceState(null, "", url.toString());
+
+    setRoomId(nextRoomId);
+    setRoomInput(nextRoomId);
+    setClientRole(nextRole);
+    setSocketConnected(false);
+
+    if (nextRole === "p1" || nextRole === "p2") {
+      setViewPlayerId(nextRole);
+      resetUiState();
+    }
+  }
+
+  function handleLeaveRoom() {
+    const url = new URL(window.location.href);
+
+    url.searchParams.delete("room");
+    url.searchParams.delete("role");
+    window.history.replaceState(null, "", url.toString());
+
+    setRoomId("");
+    setSocketConnected(false);
+    resetUiState();
+  }
 
   function handleClientRoleChange(nextRole: ClientRole) {
     const url = new URL(window.location.href);
@@ -1076,6 +1110,34 @@ export default function App() {
     <div className="app">
       <h1>DM Table Prototype</h1>
 
+      {!roomId && (
+        <div className="lobbyOverlay">
+          <section className="lobbyCard">
+            <h1>DM Table Prototype</h1>
+            <p className="lobbyLead">部屋名を入力して、作成・参加・観戦を選んでください。</p>
+
+            <label className="lobbyInputLabel">
+              部屋ID
+              <input
+                value={roomInput}
+                onChange={(event) => setRoomInput(event.target.value)}
+                placeholder="例: test001"
+              />
+            </label>
+
+            <div className="lobbyActions">
+              <button onClick={() => handleEnterRoom("p1")}>部屋を作る（p1）</button>
+              <button onClick={() => handleEnterRoom("p2")}>部屋に入る（p2）</button>
+              <button onClick={() => handleEnterRoom("spectator")}>観戦する</button>
+            </div>
+
+            <p className="lobbyNote">
+              部屋を作った人がp1、部屋URLから入った人がp2になります。
+            </p>
+          </section>
+        </div>
+      )}
+
       <div className="roomPanel">
         <div>
           <strong>部屋</strong>
@@ -1098,6 +1160,7 @@ export default function App() {
         </label>
 
         <button onClick={handleCopyRoomUrl}>部屋URLコピー</button>
+        <button onClick={handleLeaveRoom}>退室</button>
       </div>
 
       <div className="toolbar">

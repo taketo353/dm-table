@@ -1659,3 +1659,351 @@ body {
   color: #666;
   font-size: 13px;
 }
+
+/* =========================
+   PC UI polish v1
+   ========================= */
+
+@media (min-width: 900px) {
+  html,
+  body,
+  #root {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  body {
+    margin: 0;
+  }
+
+  .appShell {
+    height: 100vh;
+    max-height: 100vh;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 280px;
+    grid-template-rows: auto auto minmax(0, 1fr);
+    gap: 6px 8px;
+    padding: 6px;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+
+  .appShell > h1 {
+    display: none;
+  }
+
+  .roomPanel {
+    grid-column: 1 / 2;
+    grid-row: 1;
+    margin: 0;
+    padding: 6px 8px;
+    min-height: 34px;
+    border-radius: 10px;
+  }
+
+  .toolbar {
+    grid-column: 1 / 2;
+    grid-row: 2;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin: 0;
+    padding: 4px 6px;
+    border: 1px solid #d8d8d8;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.96);
+  }
+
+  .toolbar button,
+  .toolbar select,
+  .toolbar input,
+  .roomPanel button,
+  .roomPanel select,
+  .roomPanel input {
+    min-height: 28px;
+    padding: 3px 8px;
+    font-size: 12px;
+    line-height: 1.2;
+    border-radius: 7px;
+  }
+
+  .roomPanel strong,
+  .roomPanel label,
+  .roomPanel span {
+    font-size: 12px;
+  }
+
+  .roomId,
+  .syncStatus {
+    padding: 2px 7px;
+    font-size: 11px;
+  }
+
+  /* 盤面本体 */
+  .boardArea,
+  .boards,
+  .tableArea,
+  .playArea,
+  .gameArea {
+    grid-column: 1 / 2;
+    grid-row: 3;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  /* App側の直下に盤面がある場合も拾う */
+  .appShell > .playerBoards,
+  .appShell > .boardWrapper,
+  .appShell > .gameBoard {
+    grid-column: 1 / 2;
+    grid-row: 3;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  /* ログを右固定 */
+  .logPanel,
+  .logs,
+  .gameLog,
+  .logColumn {
+    grid-column: 2 / 3;
+    grid-row: 1 / 4;
+    min-width: 0;
+    min-height: 0;
+    height: 100%;
+    overflow-y: auto;
+    border: 1px solid #d8d8d8;
+    border-radius: 10px;
+    background: #fff;
+  }
+
+  /* 右側ログが aside の場合 */
+  aside {
+    grid-column: 2 / 3;
+    grid-row: 1 / 4;
+    min-height: 0;
+    overflow-y: auto;
+  }
+
+  /* プレイヤー盤面を上下に圧縮 */
+  .playerBoard,
+  .playerPanel,
+  .playerArea {
+    min-height: 0;
+    overflow: hidden;
+    border-radius: 10px;
+  }
+
+  .playerHeader,
+  .boardHeader,
+  .zoneHeader {
+    min-height: 22px;
+    font-size: 12px;
+  }
+
+  /* ゾーン全体 */
+  .zone {
+    min-height: 36px;
+    padding: 3px;
+    border-radius: 8px;
+  }
+
+  .zoneTitle,
+  .zoneName {
+    font-size: 11px;
+    line-height: 1.1;
+  }
+
+  /* バトルゾーンは広く */
+  .battle,
+  .battleZone,
+  [data-zone="battle"] {
+    min-height: 96px;
+  }
+
+  /* 手札・マナは横スクロール */
+  .hand,
+  .handZone,
+  [data-zone="hand"],
+  .mana,
+  .manaZone,
+  [data-zone="mana"] {
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+    min-height: 54px;
+  }
+
+  /* 山札・シールド・墓地・確認中はコンパクト */
+  .deck,
+  .deckZone,
+  [data-zone="deck"],
+  .shield,
+  .shieldZone,
+  [data-zone="shield"],
+  .grave,
+  .graveZone,
+  [data-zone="grave"],
+  .private,
+  .privateZone,
+  [data-zone="private"],
+  .external,
+  .externalZone,
+  [data-zone="external"] {
+    min-height: 42px;
+  }
+
+  /* カード/束 */
+  .card,
+  .stack,
+  .cardStack {
+    min-width: 62px;
+    max-width: 96px;
+    min-height: 34px;
+    padding: 3px 5px;
+    font-size: 10.5px;
+    line-height: 1.15;
+    border-radius: 6px;
+  }
+
+  .hand .card,
+  .handZone .card,
+  [data-zone="hand"] .card,
+  .hand .stack,
+  .handZone .stack,
+  [data-zone="hand"] .stack {
+    min-width: 76px;
+    min-height: 42px;
+  }
+
+  .mana .card,
+  .manaZone .card,
+  [data-zone="mana"] .card,
+  .mana .stack,
+  .manaZone .stack,
+  [data-zone="mana"] .stack {
+    min-width: 66px;
+    min-height: 34px;
+  }
+
+  .battle .card,
+  .battleZone .card,
+  [data-zone="battle"] .card,
+  .battle .stack,
+  .battleZone .stack,
+  [data-zone="battle"] .stack {
+    min-width: 82px;
+    min-height: 46px;
+  }
+
+  /* 選択・公開・非公開を見分けやすく */
+  .selected,
+  .isSelected {
+    outline: 3px solid #111;
+    outline-offset: 1px;
+  }
+
+  .publicCard,
+  .isPublic {
+    box-shadow: inset 0 0 0 2px rgba(0, 128, 64, 0.5);
+  }
+
+  .hiddenInfo,
+  .privateInfo {
+    opacity: 0.7;
+    font-size: 10px;
+  }
+
+  /* モーダル系 */
+  .modal,
+  .dialog,
+  .overlayContent {
+    max-height: 82vh;
+    overflow: auto;
+  }
+}
+
+
+/* =========================
+   Zone scroll polish
+   ========================= */
+
+@media (min-width: 900px) {
+  /* シールド：横スクロール */
+  .shield,
+  .shieldZone,
+  [data-zone="shield"] {
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    white-space: nowrap;
+    max-width: 100%;
+  }
+
+  /* マナ：横スクロール */
+  .mana,
+  .manaZone,
+  [data-zone="mana"] {
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    white-space: nowrap;
+    max-width: 100%;
+  }
+
+  /* バトルゾーン：横スクロール＋縦も少し許可 */
+  .battle,
+  .battleZone,
+  [data-zone="battle"] {
+    overflow-x: auto !important;
+    overflow-y: auto !important;
+    max-width: 100%;
+    max-height: 140px;
+  }
+
+  /* スクロール領域内でカードが潰れないようにする */
+  .shield .card,
+  .shieldZone .card,
+  [data-zone="shield"] .card,
+  .shield .stack,
+  .shieldZone .stack,
+  [data-zone="shield"] .stack,
+  .mana .card,
+  .manaZone .card,
+  [data-zone="mana"] .card,
+  .mana .stack,
+  .manaZone .stack,
+  [data-zone="mana"] .stack,
+  .battle .card,
+  .battleZone .card,
+  [data-zone="battle"] .card,
+  .battle .stack,
+  .battleZone .stack,
+  [data-zone="battle"] .stack {
+    flex: 0 0 auto;
+  }
+}
+
+
+/* 確認中/private：横スクロール */
+@media (min-width: 900px) {
+  .private,
+  .privateZone,
+  [data-zone="private"] {
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    white-space: nowrap;
+    max-width: 100%;
+  }
+
+  .private .card,
+  .privateZone .card,
+  [data-zone="private"] .card,
+  .private .stack,
+  .privateZone .stack,
+  [data-zone="private"] .stack {
+    flex: 0 0 auto;
+  }
+}
+
